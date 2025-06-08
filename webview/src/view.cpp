@@ -8,6 +8,7 @@
 #include <QNetworkReply>
 #include <QImage>
 #include <QPainter>
+#include <QWebEngineSettings>
 
 #include "view.h"
 
@@ -16,6 +17,9 @@ View::View(QWidget* parent) : QWidget(parent)
 {
     webView = new QWebEngineView(this);
     webView->setVisible(false);
+    webView->page()->settings()->setAttribute(
+        QWebEngineSettings::PlaybackRequiresUserGesture,
+        false);
 
     connect(
         webView->page(),
@@ -25,6 +29,9 @@ View::View(QWidget* parent) : QWidget(parent)
     );
 
     pre_loader = new QWebEnginePage;
+    pre_loader->settings()->setAttribute(
+        QWebEngineSettings::PlaybackRequiresUserGesture,
+        false);
     networkManager = new QNetworkAccessManager(this);
     currentImage = QImage();
     nextImage = QImage();
