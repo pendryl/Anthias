@@ -1,0 +1,10 @@
+board: raspberrypi4-64
+git_hash: 04b7e9788342d5e99989d55946a45b0d
+git_short_hash: 04b7e97
+git_branch: master
+disable_cache_mounts: false
+archive_url: https://github.com/balena-io/wifi-connect/releases/download/v4.10.0/wifi-connect-rpi-armv7hf.zip
+apt_dependencies:
+  - dnsmasq
+  - unzip
+  - curl

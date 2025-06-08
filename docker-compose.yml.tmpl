@@ -1,6 +1,19 @@
 # vim: ft=yaml.docker-compose
 
 services:
+  policy-init:
+    image: alpine:3.20
+    volumes:
+      - chromium_policies:/etc/chromium/policies
+    command:
+      - /bin/sh
+      - -c
+      - |
+        mkdir -p /etc/chromium/policies/managed
+        echo '{"AutoplayAllowed": true, "AutoplayAllowlist": ["https://*"]}' \
+             > /etc/chromium/policies/managed/autoplay.json
+    restart: "no"
+
   anthias-wifi-connect:
     image: screenly/anthias-wifi-connect:${DOCKER_TAG}-${DEVICE_TYPE}
     build:
@@ -71,6 +84,7 @@ services:
       - /home/${USER}/screenly_assets:/data/screenly_assets
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+      - chromium_policies:/etc/chromium/policies
     labels:
       io.balena.features.supervisor-api: '1'
 
@@ -152,3 +166,4 @@ volumes:
   resin-data:
   redis-data:
   screenly-data:
+  chromium_policies:

@@ -1,0 +1,1 @@
+console.log("Anthias is a Docker-based project, see docker-compose.yml");

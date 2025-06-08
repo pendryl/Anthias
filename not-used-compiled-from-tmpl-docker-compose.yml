@@ -1,26 +1,20 @@
-# vim: ft=yaml
-
 version: "2"
 services:
+
   policy-init:
     image: alpine:3.20
     volumes:
       - chromium_policies:/etc/chromium/policies
-    command:
-      - /bin/sh
-      - -c
-      - |
-        mkdir -p /etc/chromium/policies/managed
-        cat <<'EOF' > /etc/chromium/policies/managed/autoplay.json
-        {
-          "DefaultMediaPlaybackSetting": 0,
-          "AutoplayAllowlist": ["https://*", "http://*"]
-        }
-        EOF
+    command: >
+      sh -c 'mkdir -p /etc/chromium/policies/managed &&
+             printf %s "{\"AutoplayAllowed\": true, \"AutoplayAllowlist\": [\"https://*\"]}" \
+             >/etc/chromium/policies/managed/autoplay.json'
     restart: "no"
 
   anthias-wifi-connect:
-    image: screenly/anthias-wifi-connect:${GIT_SHORT_HASH}-${BOARD}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.wifi-connect.template
     depends_on:
       - anthias-viewer
     environment:
@@ -35,7 +29,9 @@ services:
       io.balena.features.firmware: "1"
 
   anthias-server:
-    image: screenly/anthias-server:${GIT_SHORT_HASH}-${BOARD}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.server.template
     environment:
       - HOME=/data
       - LISTEN=0.0.0.0
@@ -48,9 +44,11 @@ services:
       - resin-data:/data
     labels:
       io.balena.features.supervisor-api: '1'
-
+  
   anthias-viewer:
-    image: screenly/anthias-viewer:${GIT_SHORT_HASH}-${BOARD}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.viewer.template
     depends_on:
       - anthias-server
     environment:
@@ -58,14 +56,11 @@ services:
       - PORT=80
       - NOREFRESH=1
       - LISTEN=anthias-nginx
-      - QTWEBENGINE_CHROMIUM_FLAGS=--remote-debugging-port=9222
     extra_hosts:
       - "host.docker.internal:host-gateway"
     privileged: true
-    devices:
-      - /dev/input:/dev/input
     restart: always
-    shm_size: ${SHM_SIZE}
+    shm_size: 512m
     volumes:
       - resin-data:/data
       - chromium_policies:/etc/chromium/policies
@@ -73,7 +68,9 @@ services:
       io.balena.features.supervisor-api: '1'
 
   anthias-websocket:
-    image: screenly/anthias-websocket:${GIT_SHORT_HASH}-${BOARD}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.websocket.template
     depends_on:
       - anthias-server
     environment:
@@ -84,7 +81,9 @@ services:
       - resin-data:/data
 
   anthias-celery:
-    image: screenly/anthias-celery:${GIT_SHORT_HASH}-${BOARD}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.celery.template
     depends_on:
       - anthias-server
       - redis
@@ -101,7 +100,7 @@ services:
       io.balena.features.supervisor-api: '1'
 
   redis:
-    image: screenly/anthias-redis:${GIT_SHORT_HASH}-${BOARD}
+    image: redis:7.0
     ports:
       - 127.0.0.1:6379:6379
     restart: always
@@ -109,7 +108,9 @@ services:
       - redis-data:/var/lib/redis
 
   anthias-nginx:
-    image: screenly/anthias-nginx:${GIT_SHORT_HASH}-${BOARD}
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nginx.template
     ports:
       - 80:80
     environment:
@@ -125,3 +126,4 @@ volumes:
   resin-data:
   redis-data:
   chromium_policies:
+  
