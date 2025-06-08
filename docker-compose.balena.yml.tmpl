@@ -58,12 +58,14 @@ services:
       - PORT=80
       - NOREFRESH=1
       - LISTEN=anthias-nginx
-      - QTWEBENGINE_CHROMIUM_FLAGS=--remote-debugging-port=9222
+      - QTWEBENGINE_CHROMIUM_FLAGS=--remote-debugging-port=9222 --disable-features=AutoplayUserGestureRequired
     extra_hosts:
       - "host.docker.internal:host-gateway"
     privileged: true
     devices:
       - /dev/input:/dev/input
+    ports:
+      - "9222:9222"
     restart: always
     shm_size: ${SHM_SIZE}
     volumes:
